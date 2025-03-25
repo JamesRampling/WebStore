@@ -1,0 +1,25 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <title>@ViewData["Title"] - Flower Store</title>
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/FlowerSales.Web.styles.css" asp-append-version="true" />
+</head>
+
+<body>
+    <header>
+        Flower Store - <a asp-area="" asp-controller="Home" asp-action="Index">Home</a>
+    </header>
+
+    <main>@RenderBody()</main>
+
+    <footer>
+        Flower Store - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+    </footer>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+
+</html>

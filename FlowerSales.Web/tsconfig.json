@@ -1,0 +1,22 @@
+{
+  "compileOnSave": true,
+  "compilerOptions": {
+    "noImplicitAny": true,
+    "strict": true,
+
+    "noEmitOnError": true,
+    "removeComments": false,
+    "sourceMap": true,
+    "target": "ESNext",
+
+    "rootDir": "Views",
+    "baseUrl": "Views",
+    "paths": {
+      "/js/*": ["./*"]
+    },
+    "outDir": "dist/js"
+  },
+  "include": [
+    "Views/**/*.ts",
+  ]
+}

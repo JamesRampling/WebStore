@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.TypeScript.MSBuild" Version="3.7.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <StaticResources Include="Assets/**/*.*" />
+  </ItemGroup>
+
+  <Target Name="CopyStaticDist" AfterTargets="BeforeBuild">
+    <RemoveDir Directories="dist" />
+    <Copy SourceFiles="@(StaticResources)" DestinationFolder="dist/%(RecursiveDir)" />
+  </Target>
+</Project>
