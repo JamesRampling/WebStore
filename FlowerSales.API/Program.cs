@@ -3,6 +3,10 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+builder.Services.AddCors(options => options.AddDefaultPolicy(policy => policy
+    .WithOrigins(builder.Configuration["AppOrigin"]!)
+    .WithHeaders()));
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -10,8 +14,13 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+else
+{
+    app.UseHsts();
+}
 
 app.UseHttpsRedirection();
+app.UseCors();
 
 var summaries = new[]
 {
@@ -20,7 +29,7 @@ var summaries = new[]
 
 app.MapGet("/weatherforecast", () =>
 {
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
+    var forecast = Enumerable.Range(1, 5).Select(index =>
         new WeatherForecast
         (
             DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
