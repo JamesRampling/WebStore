@@ -1,8 +1,41 @@
 @host = localhost:7294
 @app_origin = https://localhost:7209
 
-GET https://{{host}}/weatherforecast/
+GET https://{{host}}/store/products
 Accept: application/json
 Origin: {{app_origin}}
+
+###
+
+GET https://{{host}}/store/product/6819944fb45e03d3e67e926f
+Accept: application/json
+Origin: {{app_origin}}
+
+###
+
+POST https://{{host}}/store/product
+Accept: application/json
+Content-Type: application/json
+Origin: {{app_origin}}
+
+{
+    "category_id": "000000000000000000000000",
+    "name": "Rose",
+    "store_location": "Roleystone",
+    "post_code": "6111",
+    "price": 10,
+    "is_available": true
+}
+
+###
+
+PUT https://{{host}}/store/product/6819944fb45e03d3e67e926f
+Accept: application/json
+Content-Type: application/json
+Origin: {{app_origin}}
+
+{
+    "name": "Daisy"
+}
 
 ###

@@ -1,11 +1,29 @@
+using System.Text.Json;
+
+using FlowerSales.API.Models;
+
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddControllers()
+                .AddJsonOptions(o =>
+                {
+                    o.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower;
+                    o.JsonSerializerOptions.Converters.Add(new ObjectIdConverter());
+                });
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+if (builder.Configuration["AppOrigin"] is not string appOrigin)
+    throw new Exception("AppOrigin needs to be set in appsettings!");
+if (builder.Configuration["MongoEndpoint"] is not string mongoEndpoint)
+    throw new Exception("MongoEndpoint needs to be set in appsettings!");
+
 builder.Services.AddCors(options => options.AddDefaultPolicy(policy => policy
-    .WithOrigins(builder.Configuration["AppOrigin"]!)
+    .WithOrigins(appOrigin)
     .WithHeaders()));
+
+builder.Services.AddMongoDB<StoreContext>(mongoEndpoint, "flowersales_db");
 
 var app = builder.Build();
 
@@ -22,28 +40,6 @@ else
 app.UseHttpsRedirection();
 app.UseCors();
 
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
-
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast = Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast");
+app.MapControllers();
 
 app.Run();
-
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
