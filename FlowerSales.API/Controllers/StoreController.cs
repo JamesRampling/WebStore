@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 
 using MongoDB.Bson;
 
-namespace FlowerSales.API;
+namespace FlowerSales.API.Controllers;
 
 [ApiController]
 [Route("store")]
@@ -20,17 +20,18 @@ public class StoreAPIController : ControllerBase
 
     [HttpGet]
     [Route("products")]
-    public IAsyncEnumerable<Product> GetProducts() => _context.Products.AsAsyncEnumerable();
+    public IEnumerable<Product> GetProducts([FromQuery] PaginationParams pagination, [FromQuery] ProductQueryParams query)
+        => _context.Products.AsQueryable()
+            .Where(query.Predicate())
+            .Skip(pagination.Page * pagination.Items)
+            .Take(pagination.Items);
 
     [HttpGet]
     [Route("product/{id}")]
     public async Task<ActionResult<Product>> GetProduct(ObjectId id)
     {
-        await foreach (var p in _context.Products.AsAsyncEnumerable())
-        {
-            if (p.Id == id) return Ok(p);
-        }
-        return NotFound();
+        var prod = await _context.Products.FindAsync(id);
+        return prod is not null ? Ok(prod) : NotFound();
     }
 
     [HttpPost]
@@ -48,7 +49,7 @@ public class StoreAPIController : ControllerBase
             IsAvailable = req.IsAvailable,
         };
 
-        var res = await _context.Products.AddAsync(prod);
+        var res = _context.Products.Add(prod);
         await _context.SaveChangesAsync();
 
         var e = res.Entity;
@@ -59,17 +60,7 @@ public class StoreAPIController : ControllerBase
     [Route("product/{id}")]
     public async Task<ActionResult<Product>> UpdateProduct(ObjectId id, [FromBody] ProductUpdateRequest req)
     {
-        Product? prod = null;
-
-        await foreach (var p in _context.Products.AsAsyncEnumerable())
-        {
-            if (p.Id == id)
-            {
-                prod = p;
-                break;
-            }
-        }
-
+        var prod = await _context.Products.FindAsync(id);
         if (prod is null) return NotFound();
 
         prod.CategoryId = req.CategoryId ?? prod.CategoryId;
@@ -81,5 +72,17 @@ public class StoreAPIController : ControllerBase
 
         await _context.SaveChangesAsync();
         return Ok(prod);
+    }
+
+    [HttpDelete]
+    [Route("product/{id}")]
+    public async Task<ActionResult> DeleteProduct(ObjectId id)
+    {
+        var prod = await _context.Products.FindAsync(id);
+        if (prod is null) return NotFound();
+
+        _context.Products.Remove(prod);
+        await _context.SaveChangesAsync();
+        return NoContent();
     }
 }

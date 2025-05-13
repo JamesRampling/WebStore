@@ -2,17 +2,30 @@ using System.Text.Json;
 
 using FlowerSales.API.Models;
 
+using Microsoft.OpenApi.Models;
+
+using MongoDB.Bson;
+
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllers()
-                .AddJsonOptions(o =>
-                {
-                    o.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower;
-                    o.JsonSerializerOptions.Converters.Add(new ObjectIdConverter());
-                });
+builder.Services
+    .AddControllers()
+    .AddJsonOptions(o =>
+    {
+        o.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower;
+        o.JsonSerializerOptions.Converters.Add(new ObjectIdConverter());
+    });
 
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "FlowerSales", Version = "v1" });
+    c.MapType<ObjectId>(() => new OpenApiSchema
+    {
+        Title = "ObjectId",
+        Type = nameof(String)
+    });
+});
 
 if (builder.Configuration["AppOrigin"] is not string appOrigin)
     throw new Exception("AppOrigin needs to be set in appsettings!");

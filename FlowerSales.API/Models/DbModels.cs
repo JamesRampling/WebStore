@@ -32,6 +32,7 @@ public class ObjectIdConverter : JsonConverter<ObjectId>
         writer.WriteStringValue(value.ToString());
 }
 
+[PrimaryKey(nameof(Id))]
 public record Category
 {
     [BsonId]
@@ -41,6 +42,7 @@ public record Category
     public required string Name { get; set; }
 }
 
+[PrimaryKey(nameof(Id))]
 public record Product
 {
     [BsonId]

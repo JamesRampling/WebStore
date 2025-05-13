@@ -20,7 +20,7 @@ Origin: {{app_origin}}
 
 {
     "category_id": "000000000000000000000000",
-    "name": "Rose",
+    "name": "Corpse Flower",
     "store_location": "Roleystone",
     "post_code": "6111",
     "price": 10,
@@ -29,7 +29,7 @@ Origin: {{app_origin}}
 
 ###
 
-PUT https://{{host}}/store/product/6819944fb45e03d3e67e926f
+PUT https://{{host}}/store/product/6819e7fa2e12ae3d1e9f1c7f
 Accept: application/json
 Content-Type: application/json
 Origin: {{app_origin}}
@@ -37,5 +37,11 @@ Origin: {{app_origin}}
 {
     "name": "Daisy"
 }
+
+###
+
+DELETE https://{{host}}/store/product/000000000000000000000000
+Accept: application/json
+Origin: {{app_origin}}
 
 ###
