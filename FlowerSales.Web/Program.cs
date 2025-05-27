@@ -1,8 +1,4 @@
-var builder = WebApplication.CreateBuilder(new WebApplicationOptions
-{
-    Args = args,
-    WebRootPath = "dist",
-});
+var builder = WebApplication.CreateBuilder();
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();

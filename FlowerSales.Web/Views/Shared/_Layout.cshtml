@@ -10,15 +10,18 @@
 
 <body>
     <header>
-        Flower Store - <a asp-area="" asp-controller="Home" asp-action="Index">Home</a>
+        <h1><a asp-controller="Home" asp-action="Index">Flower Store</a></h1>
+        <nav>
+            <a asp-controller="Home" asp-action="Privacy">Privacy</a>
+        </nav>
+        <div>
+            <a id="login" href="javascript:void(0)">Login</a>
+        </div>
     </header>
 
     <main>@RenderBody()</main>
 
-    <footer>
-        Flower Store - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-    </footer>
-
+    <script type="module" src="~/js/login.js"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 
