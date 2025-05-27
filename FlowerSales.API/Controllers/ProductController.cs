@@ -8,11 +8,11 @@ namespace FlowerSales.API.Controllers;
 
 [ApiController]
 [Route("store")]
-public class StoreAPIController : ControllerBase
+public class ProductController : ControllerBase
 {
     private readonly StoreContext _context;
 
-    public StoreAPIController(StoreContext context)
+    public ProductController(StoreContext context)
     {
         _context = context;
         _context.Database.EnsureCreated();
@@ -36,7 +36,7 @@ public class StoreAPIController : ControllerBase
 
     [HttpPost]
     [Route("product")]
-    public async Task<ActionResult<Product>> CreateProduct([FromBody] ProductCreateRequest req)
+    public async Task<ActionResult<Product>> CreateProduct([FromBody] ProductRequest req)
     {
         var prod = new Product
         {
@@ -58,17 +58,17 @@ public class StoreAPIController : ControllerBase
 
     [HttpPut]
     [Route("product/{id}")]
-    public async Task<ActionResult<Product>> UpdateProduct(ObjectId id, [FromBody] ProductUpdateRequest req)
+    public async Task<ActionResult<Product>> UpdateProduct(ObjectId id, [FromBody] ProductRequest req)
     {
         var prod = await _context.Products.FindAsync(id);
         if (prod is null) return NotFound();
 
-        prod.CategoryId = req.CategoryId ?? prod.CategoryId;
-        prod.Name = req.Name ?? prod.Name;
-        prod.StoreLocation = req.StoreLocation ?? prod.StoreLocation;
-        prod.PostCode = req.PostCode ?? prod.PostCode;
-        prod.Price = req.Price ?? prod.Price;
-        prod.IsAvailable = req.IsAvailable ?? prod.IsAvailable;
+        prod.CategoryId = req.CategoryId;
+        prod.Name = req.Name;
+        prod.StoreLocation = req.StoreLocation;
+        prod.PostCode = req.PostCode;
+        prod.Price = req.Price;
+        prod.IsAvailable = req.IsAvailable;
 
         await _context.SaveChangesAsync();
         return Ok(prod);

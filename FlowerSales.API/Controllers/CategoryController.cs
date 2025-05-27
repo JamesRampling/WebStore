@@ -1,0 +1,78 @@
+using FlowerSales.API.Models;
+
+using Microsoft.AspNetCore.Mvc;
+
+using MongoDB.Bson;
+
+namespace FlowerSales.API.Controllers;
+
+[ApiController]
+[Route("store")]
+public class CategoryController : ControllerBase
+{
+    private readonly StoreContext _context;
+
+    public CategoryController(StoreContext context)
+    {
+        _context = context;
+        _context.Database.EnsureCreated();
+    }
+
+    [HttpGet]
+    [Route("categories")]
+    public IEnumerable<Category> GetCategories([FromQuery] PaginationParams pagination, [FromQuery] string? name = null)
+        => _context.Categories.AsQueryable()
+            .Where(category => string.IsNullOrWhiteSpace(name) || category.Name.Contains(name))
+            .Skip(pagination.Page * pagination.Items)
+            .Take(pagination.Items);
+
+    [HttpGet]
+    [Route("category/{id}")]
+    public async Task<ActionResult<Category>> GetCategory(ObjectId id)
+    {
+        var cat = await _context.Categories.FindAsync(id);
+        return cat is not null ? Ok(cat) : NotFound();
+    }
+
+    [HttpPost]
+    [Route("category")]
+    public async Task<ActionResult<Category>> CreateCategory([FromBody] CategoryRequest req)
+    {
+        var cat = new Category
+        {
+            Id = ObjectId.GenerateNewId(),
+            Name = req.Name,
+        };
+
+        var res = _context.Categories.Add(cat);
+        await _context.SaveChangesAsync();
+
+        var e = res.Entity;
+        return CreatedAtAction(nameof(GetCategory), new { id = e.Id }, e);
+    }
+
+    [HttpPut]
+    [Route("category/{id}")]
+    public async Task<ActionResult<Category>> UpdateCategory(ObjectId id, [FromBody] CategoryRequest req)
+    {
+        var cat = await _context.Categories.FindAsync(id);
+        if (cat is null) return NotFound();
+
+        cat.Name = req.Name;
+
+        await _context.SaveChangesAsync();
+        return Ok(cat);
+    }
+
+    [HttpDelete]
+    [Route("category/{id}")]
+    public async Task<ActionResult> DeleteCategory(ObjectId id)
+    {
+        var cat = await _context.Categories.FindAsync(id);
+        if (cat is null) return NotFound();
+
+        _context.Categories.Remove(cat);
+        await _context.SaveChangesAsync();
+        return NoContent();
+    }
+}

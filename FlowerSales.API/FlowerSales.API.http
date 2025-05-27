@@ -35,7 +35,12 @@ Content-Type: application/json
 Origin: {{app_origin}}
 
 {
-    "name": "Daisy"
+    "category_id": "000000000000000000000000",
+    "name": "Daisy",
+    "store_location": "Roleystone",
+    "post_code": "6111",
+    "price": 10,
+    "is_available": true
 }
 
 ###
