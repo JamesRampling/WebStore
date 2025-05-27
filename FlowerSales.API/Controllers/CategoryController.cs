@@ -1,13 +1,16 @@
 using FlowerSales.API.Models;
 
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 
 using MongoDB.Bson;
 
 namespace FlowerSales.API.Controllers;
 
+[EnableCors]
 [ApiController]
-[Route("store")]
+[Route("/api/store")]
 public class CategoryController : ControllerBase
 {
     private readonly StoreContext _context;
@@ -35,6 +38,7 @@ public class CategoryController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize]
     [Route("category")]
     public async Task<ActionResult<Category>> CreateCategory([FromBody] CategoryRequest req)
     {
@@ -52,6 +56,7 @@ public class CategoryController : ControllerBase
     }
 
     [HttpPut]
+    [Authorize]
     [Route("category/{id}")]
     public async Task<ActionResult<Category>> UpdateCategory(ObjectId id, [FromBody] CategoryRequest req)
     {
@@ -65,6 +70,7 @@ public class CategoryController : ControllerBase
     }
 
     [HttpDelete]
+    [Authorize]
     [Route("category/{id}")]
     public async Task<ActionResult> DeleteCategory(ObjectId id)
     {

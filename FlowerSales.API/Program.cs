@@ -1,5 +1,7 @@
 using System.Text.Json;
 
+using AspNetCore.Identity.Mongo;
+
 using FlowerSales.API.Models;
 
 using Microsoft.OpenApi.Models;
@@ -23,7 +25,10 @@ builder.Services.AddSwaggerGen(c =>
     c.MapType<ObjectId>(() => new OpenApiSchema
     {
         Title = "ObjectId",
-        Type = nameof(String)
+        Type = "string",
+        Description = "MongoDB ObjectId",
+        Format = "hex",
+        Pattern = "[0-9a-fA-F]{24}",
     });
 });
 
@@ -37,6 +42,8 @@ builder.Services.AddCors(options => options.AddDefaultPolicy(policy => policy
     .WithHeaders()));
 
 builder.Services.AddMongoDB<StoreContext>(mongoEndpoint, "flowersales_db");
+builder.Services.AddIdentityApiEndpoints<ApplicationUser>()
+    .AddMongoDbStores<ApplicationUser>(o => o.ConnectionString = mongoEndpoint);
 
 var app = builder.Build();
 
@@ -54,5 +61,8 @@ app.UseHttpsRedirection();
 app.UseCors();
 
 app.MapControllers();
+app.MapGroup("/api/account")
+    .WithTags("Account")
+    .MapIdentityApi<ApplicationUser>();
 
 app.Run();

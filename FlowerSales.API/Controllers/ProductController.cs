@@ -1,13 +1,16 @@
 using FlowerSales.API.Models;
 
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 
 using MongoDB.Bson;
 
 namespace FlowerSales.API.Controllers;
 
+[EnableCors]
 [ApiController]
-[Route("store")]
+[Route("/api/store")]
 public class ProductController : ControllerBase
 {
     private readonly StoreContext _context;
@@ -35,6 +38,7 @@ public class ProductController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize]
     [Route("product")]
     public async Task<ActionResult<Product>> CreateProduct([FromBody] ProductRequest req)
     {
@@ -57,6 +61,7 @@ public class ProductController : ControllerBase
     }
 
     [HttpPut]
+    [Authorize]
     [Route("product/{id}")]
     public async Task<ActionResult<Product>> UpdateProduct(ObjectId id, [FromBody] ProductRequest req)
     {
@@ -75,6 +80,7 @@ public class ProductController : ControllerBase
     }
 
     [HttpDelete]
+    [Authorize]
     [Route("product/{id}")]
     public async Task<ActionResult> DeleteProduct(ObjectId id)
     {
