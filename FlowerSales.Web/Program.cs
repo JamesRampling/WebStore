@@ -23,4 +23,7 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
+app.MapControllers();
+app.UseStatusCodePagesWithReExecute("/Error/PageNotFound");
+
 app.Run();

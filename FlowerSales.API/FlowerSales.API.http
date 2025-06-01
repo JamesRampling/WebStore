@@ -1,19 +1,19 @@
 @host = localhost:7294
 @app_origin = https://localhost:7209
 
-GET https://{{host}}/store/products
+GET https://{{host}}/api/store/products
 Accept: application/json
 Origin: {{app_origin}}
 
 ###
 
-GET https://{{host}}/store/product/6819944fb45e03d3e67e926f
+GET https://{{host}}/api/store/product/6819944fb45e03d3e67e926f
 Accept: application/json
 Origin: {{app_origin}}
 
 ###
 
-POST https://{{host}}/store/product
+POST https://{{host}}/api/store/product
 Accept: application/json
 Content-Type: application/json
 Origin: {{app_origin}}
@@ -29,7 +29,7 @@ Origin: {{app_origin}}
 
 ###
 
-PUT https://{{host}}/store/product/6819e7fa2e12ae3d1e9f1c7f
+PUT https://{{host}}/api/store/product/6819e7fa2e12ae3d1e9f1c7f
 Accept: application/json
 Content-Type: application/json
 Origin: {{app_origin}}
@@ -45,7 +45,7 @@ Origin: {{app_origin}}
 
 ###
 
-DELETE https://{{host}}/store/product/000000000000000000000000
+DELETE https://{{host}}/api/store/product/000000000000000000000000
 Accept: application/json
 Origin: {{app_origin}}
 

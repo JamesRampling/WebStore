@@ -11,8 +11,8 @@ namespace FlowerSales.API.Models;
 
 public class StoreContext(DbContextOptions options) : DbContext(options)
 {
-    public DbSet<Category> Categories { get; init; }
-    public DbSet<Product> Products { get; init; }
+    public DbSet<Category> Categories { get; init; } = null!;
+    public DbSet<Product> Products { get; init; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
