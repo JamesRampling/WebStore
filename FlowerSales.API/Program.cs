@@ -39,7 +39,9 @@ if (builder.Configuration["MongoEndpoint"] is not string mongoEndpoint)
 
 builder.Services.AddCors(options => options.AddDefaultPolicy(policy => policy
     .WithOrigins(appOrigin)
-    .WithHeaders()));
+    .AllowAnyHeader()
+    .AllowAnyMethod()
+    .AllowCredentials()));
 
 builder.Services.AddMongoDB<StoreContext>(mongoEndpoint, "flowersales_db");
 builder.Services.AddIdentityApiEndpoints<ApplicationUser>()
@@ -58,11 +60,14 @@ else
 }
 
 app.UseHttpsRedirection();
-app.UseCors();
 
 app.MapControllers();
 app.MapGroup("/api/account")
     .WithTags("Account")
     .MapIdentityApi<ApplicationUser>();
+
+app.UseCors();
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.Run();

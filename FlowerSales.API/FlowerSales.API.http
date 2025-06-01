@@ -50,3 +50,9 @@ Accept: application/json
 Origin: {{app_origin}}
 
 ###
+
+GET https://{{host}}/api/store/categories
+Accept: application/json
+Origin: {{app_origin}}
+
+###

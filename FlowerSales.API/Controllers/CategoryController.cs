@@ -30,6 +30,16 @@ public class CategoryController : ControllerBase
             .Take(pagination.Items);
 
     [HttpGet]
+    [Route("categories/{ids}")]
+    public IEnumerable<Category> GetSpecificCategories(string ids)
+    {
+        // ideally this would be done by ASP.net but we'd need a custom binder
+        var split = ids.Split(",").Select(id => ObjectId.Parse(id));
+        return _context.Categories.AsQueryable().Where(category => split.Contains(category.Id));
+    }
+
+
+    [HttpGet]
     [Route("category/{id}")]
     public async Task<ActionResult<Category>> GetCategory(ObjectId id)
     {

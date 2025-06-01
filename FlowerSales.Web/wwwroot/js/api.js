@@ -3,13 +3,116 @@
 // TODO: get this from appsettings somehow
 const apiHost = "https://localhost:7294";
 
-const request = (endpoint, options) => fetch(apiHost + endpoint, options);
+const request = (endpoint, method, body) => fetch(apiHost + endpoint, {
+    headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+    },
+    credentials: 'include',
+    method,
+    body: JSON.stringify(body),
+});
 
-export default {
-    login: (email, password) => request("/api/account/login", {
-        method: "POST", body: JSON.stringify({
-            email, password
-        })
-    }),
+const toQuery = (...objects) =>
+    Object.entries(Object.assign({}, ...objects))
+        .filter(([_, value]) => value != undefined)
+        .map(([key, value]) => `${key}=${encodeURIComponent(value)}`)
+        .join("&");
+
+const Api = {
+    login: (email, password) => request("/api/account/login?useCookies=true", "POST", {email, password}),
+    register: (email, password) => request("/api/account/register", "POST", {email, password}),
     logout: () => request("/api/account/logout", "POST"),
-}
+
+    getProducts: (pagination, filters) => request(`/api/store/products?${toQuery(pagination, filters)}`).then(r => r.json()),
+
+    getCategory: (id) => request(`/api/store/category/${id}`).then(r => r.json()),
+    getCategories: (pagination, name) => request(`/api/store/categories?${toQuery(pagination, {name})}`).then(r => r.json()),
+    getSpecificCategories: (...ids) => request(`/api/store/categories/${ids.join(',')}`).then(r => r.json()),
+
+    createCategory: (name) => request("/api/store/category", "POST", {name}).then(r => r.json()),
+    updateCategory: (id, name) => request(`/api/store/category/${id}`, "PUT", {name}),
+    deleteCategory: (id) => request(`/api/store/category/${id}`, "DELETE"),
+
+    createProduct: (name, category_id, store_location, post_code, price, is_available) => request("/api/store/product", "POST", {
+        name, category_id, store_location, post_code, price, is_available,
+    }).then(r => r.json()),
+    updateProduct: (id, name, category_id, store_location, post_code, price, is_available) => request(`/api/store/product/${id}`, "PUT", {
+        name, category_id, store_location, post_code, price, is_available,
+    }),
+    deleteProduct: (id) => request(`/api/store/product/${id}`, "DELETE")
+};
+export default Api;
+
+const makeCategory = async name => {
+    return (await Api.createCategory(name)).id;
+};
+
+const makeProduct = (category, name, location, postcode, price, available) => {
+    Api.createProduct(name, category, location, postcode, price, available);
+};
+
+const addCategory = async (name, products) => {
+    const category = await makeCategory(name);
+    products.forEach(product => {
+        makeProduct(category, product[0], product[1], product[2], product[3], product[4]);
+    });
+};
+
+await Api.login('a@b.c', 'P@ssw0rd');
+
+const deleteAll = async () => {
+    const products = await Api.getProducts({ items: 100 });
+    products.forEach(product => Api.deleteProduct(product.id));
+
+    const categories = await Api.getCategories({ items: 100 });
+    categories.forEach(category => Api.deleteCategory(category.id));
+};
+
+const seed = () => {
+    addCategory("Bouquetes", [
+        ["Flowers in the city", "Canning Vale", "6155", 68, true],
+        ["Gerberas", "Willeton", "6155", 35, true],
+        ["Aziatic Lilies", "Palmyra", "6123", 33, true],
+        ["European Lilies", "Melville", "6145", 125, true],
+        ["Chrisantemum", "Canninghton", "6112", 60, true],
+        ["Alstroemeria", "Waikiki", "6112", 95, true],
+        ["Snapdragon small", "Tuart Hill", "6112", 65, true],
+        ["V-Crocus", "Willeton", "6113", 65, true],
+        ["Crocus", "Armadale", "6114", 17, true],
+    ]);
+
+    addCategory("Box Flowers", [
+        ["Calla Lily", "Aubin Grove", "6115", 99, true],
+        ["Geranium small", "Darch", "6116", 0, false],
+        ["Geranium Large", "Joonedaloop", "6112", 125, true],
+        ["Alstroemeria", "Piara Waters", "6121", 22, false],
+        ["Gerberas", "Byford", "6132", 95, true],
+        ["Marigold", "Dianella", "6342", 17, true],
+    ]);
+
+    addCategory("Wraps", [
+        ["Azalea", "Leong", "6123", 2.8, true],
+        ["Lemon-Lazalea", "Fremantle", "6124", 2.8, true],
+        ["Zinnia", "Beaconsfield", "6125", 2.8, false],
+        ["Peach Zinnia", "North Freo", "6126", 2.8, true],
+        ["Raspberry Zinnia", "Munster", "6127", 2.8, true],
+        ["Snapdragon big", "Coogee", "6128", 2.8, true],
+    ]);
+
+    addCategory("Single Flower", [
+        ["Petunia", "South Freo", "6129", 24.99, true],
+    ]);
+
+    addCategory("Additional", [
+        ["Dahlia (long lasting)", "City", "6112", 9.99, true],
+        ["Dahlia", "West Perth", "6130", 12.49, true],
+        ["Orchid domestic", "East Perth", "6131", 13.99, true],
+        ["Orchid Expensive", "Bentley" , "6132", 12.49, true],
+        ["Marigold", "Carslie", "6133", 9.99, true],
+        ["Gardenia type-C", "Lathlain", "6134", 11.99, true],
+        ["Gardenia type-B", "Booragoon", "6135", 12.99, true],
+        ["Gardenia", "Applecross", "6136", 9.99, true],
+        ["Calla Lily", "Rockingham", "6001", 12.49, true],
+    ]);
+};
