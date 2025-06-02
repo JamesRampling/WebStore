@@ -22,6 +22,7 @@ const toQuery = (...objects) =>
 const Api = {
     login: (email, password) => request("/api/account/login?useCookies=true", "POST", {email, password}),
     register: (email, password) => request("/api/account/register", "POST", {email, password}),
+    info: () => request("/api/account/info").then(r => r.json()),
     logout: () => request("/api/account/logout", "POST"),
 
     getProducts: (pagination, filters) => request(`/api/store/products?${toQuery(pagination, filters)}`).then(r => r.json()),
@@ -40,28 +41,11 @@ const Api = {
     updateProduct: (id, name, category_id, store_location, post_code, price, is_available) => request(`/api/store/product/${id}`, "PUT", {
         name, category_id, store_location, post_code, price, is_available,
     }),
-    deleteProduct: (id) => request(`/api/store/product/${id}`, "DELETE")
+    deleteProduct: (id) => request(`/api/store/product/${id}`, "DELETE"),
 };
 export default Api;
 
-const makeCategory = async name => {
-    return (await Api.createCategory(name)).id;
-};
-
-const makeProduct = (category, name, location, postcode, price, available) => {
-    Api.createProduct(name, category, location, postcode, price, available);
-};
-
-const addCategory = async (name, products) => {
-    const category = await makeCategory(name);
-    products.forEach(product => {
-        makeProduct(category, product[0], product[1], product[2], product[3], product[4]);
-    });
-};
-
-await Api.login('a@b.c', 'P@ssw0rd');
-
-const deleteAll = async () => {
+export const deleteAll = async () => {
     const products = await Api.getProducts({ items: 100 });
     products.forEach(product => Api.deleteProduct(product.id));
 
@@ -69,7 +53,14 @@ const deleteAll = async () => {
     categories.forEach(category => Api.deleteCategory(category.id));
 };
 
-const seed = () => {
+export const seedData = () => {
+    const addCategory = async (name, products) => {
+        const category = await Api.createCategory(name).then(r => r.id);
+        products.forEach(product => {
+            Api.createProduct(product[0], category, product[1], product[2], product[3], product[4]);
+        });
+    };
+
     addCategory("Bouquetes", [
         ["Flowers in the city", "Canning Vale", "6155", 68, true],
         ["Gerberas", "Willeton", "6155", 35, true],

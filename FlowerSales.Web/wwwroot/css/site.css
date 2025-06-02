@@ -52,3 +52,11 @@ a {
   text-decoration: none;
   color: var(--light-text);
 }
+
+product-view {
+  flex: 1 1 auto;
+}
+
+product-view:last-child:nth-child(odd) {
+  max-width: 50%;
+}

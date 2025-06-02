@@ -3,6 +3,7 @@ using FlowerSales.API.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 using MongoDB.Bson;
 
@@ -23,11 +24,20 @@ public class CategoryController : ControllerBase
 
     [HttpGet]
     [Route("categories")]
-    public IEnumerable<Category> GetCategories([FromQuery] PaginationParams pagination, [FromQuery] string? name = null)
-        => _context.Categories.AsQueryable()
+    public async Task<PaginatedResponse<Category>> GetCategories([FromQuery] PaginationParams pagination, [FromQuery] string? name = null)
+    {
+        var count = _context.Categories.CountAsync();
+        var results = _context.Categories.AsQueryable()
             .Where(category => string.IsNullOrWhiteSpace(name) || category.Name.Contains(name))
             .Skip(pagination.Page * pagination.Items)
             .Take(pagination.Items);
+
+        return new()
+        {
+            TotalPages = (int)Math.Ceiling((double)await count / pagination.Items),
+            Items = results,
+        };
+    }
 
     [HttpGet]
     [Route("categories/{ids}")]

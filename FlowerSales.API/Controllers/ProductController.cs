@@ -3,6 +3,7 @@ using FlowerSales.API.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 using MongoDB.Bson;
 
@@ -23,11 +24,20 @@ public class ProductController : ControllerBase
 
     [HttpGet]
     [Route("products")]
-    public IEnumerable<Product> GetProducts([FromQuery] PaginationParams pagination, [FromQuery] ProductQueryParams query)
-        => _context.Products.AsQueryable()
+    public async Task<PaginatedResponse<Product>> GetProducts([FromQuery] PaginationParams pagination, [FromQuery] ProductQueryParams query)
+    {
+        var count = _context.Products.CountAsync();
+        var results = _context.Products.AsQueryable()
             .Where(query.Predicate())
             .Skip(pagination.Page * pagination.Items)
             .Take(pagination.Items);
+
+        return new()
+        {
+            TotalPages = (int)Math.Ceiling((double)await count / pagination.Items),
+            Items = results,
+        };
+    }
 
     [HttpGet]
     [Route("product/{id}")]
