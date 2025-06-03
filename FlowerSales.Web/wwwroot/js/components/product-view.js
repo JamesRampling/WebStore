@@ -28,7 +28,6 @@ export default class ProductView extends BaseComponent {
             border-radius: 8px;
             padding: 0.5rem;
             min-height: 8.6rem;
-            min-width: 20rem;
         }
 
         h2 {
@@ -60,4 +59,7 @@ export default class ProductView extends BaseComponent {
             color: red;
         }
     `;
+
+    onRenderCallback() {
+    }
 }

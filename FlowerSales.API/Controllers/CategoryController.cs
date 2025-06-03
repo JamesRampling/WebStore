@@ -1,3 +1,5 @@
+using System.Collections.Frozen;
+
 using FlowerSales.API.Models;
 
 using Microsoft.AspNetCore.Authorization;
@@ -44,7 +46,7 @@ public class CategoryController : ControllerBase
     public IEnumerable<Category> GetSpecificCategories(string ids)
     {
         // ideally this would be done by ASP.net but we'd need a custom binder
-        var split = ids.Split(",").Select(id => ObjectId.Parse(id));
+        var split = ids.Split(",").Select(id => ObjectId.Parse(id)).ToHashSet();
         return _context.Categories.AsQueryable().Where(category => split.Contains(category.Id));
     }
 

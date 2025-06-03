@@ -1,0 +1,33 @@
+@{
+    ViewData["Title"] = "Login";
+}
+
+@section Scripts {
+    <script type="module" src="~/js/pages/login.js"></script>
+}
+
+<div class="split">
+    <div>
+        <h1>Login</h1>
+        <label for="login-email">E-Mail</label>
+        <input id="login-email" type="email" placeholder="" required />
+        <label for="login-password">Password</label>
+        <input id="login-password" type="password" placeholder="" minlength="6" autocomplete="current-password"
+            required />
+        <div>
+            <p id="login-errors"></p>
+        </div>
+        <button id="login-button">Submit</button>
+    </div>
+    <hr>
+    <div class="right">
+        <h1>Register</h1>
+        <label for="register-email">E-Mail</label>
+        <input id="register-email" type="email" placeholder="" required />
+        <label for="register-password">Password</label>
+        <input id="register-password" type="password" placeholder="" minlength="6" autocomplete="new-password"
+            required />
+        <div id="register-errors"></div>
+        <button id="register-button">Submit</button>
+    </div>
+</div>

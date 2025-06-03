@@ -1,11 +1,16 @@
 #products-list {
-  display: flex;
-  flex-flow: row wrap;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
   gap: 1rem;
-  justify-content: center;
 }
 
-.center-main {
-  margin-left: 25%;
-  margin-right: 25%;
+.center-auto {
+  margin-left: auto;
+  margin-right: auto;
+  width: fit-content;
+}
+
+#next-page,
+#prev-page {
+  font-size: 60pt;
 }

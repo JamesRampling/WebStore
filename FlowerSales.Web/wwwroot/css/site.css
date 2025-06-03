@@ -43,6 +43,9 @@ main {
   flex: 1;
   padding: 1rem;
 
+  margin-left: 25%;
+  margin-right: 25%;
+
   >h1:first-child {
     margin-block-start: 0;
   }
@@ -53,10 +56,30 @@ a {
   color: var(--light-text);
 }
 
-product-view {
-  flex: 1 1 auto;
+input:is([type="text"], [type="email"], [type="password"]) {
+  appearance: none;
+  font: inherit;
+  background-color: var(--light-background);
+  border: 1px solid var(--light-text);
+  border-radius: 6px;
+  padding: 4px 6px;
+
+  &:invalid:not(:placeholder-shown) {
+    border-color: red;
+  }
 }
 
-product-view:last-child:nth-child(odd) {
-  max-width: 50%;
+button {
+  appearance: none;
+  font: inherit;
+  border: 0;
+  border-radius: 6px;
+  background: var(--light-background);
+  box-shadow: 0 0.25rem 0.75rem 0 rgba(0, 0, 0, 0.15);
+  padding: 0.5rem 1rem;
+
+  &:active {
+    background: #eee;
+    box-shadow: 0 0.125rem 0.375rem 0 rgba(0, 0, 0, 0.15);
+  }
 }

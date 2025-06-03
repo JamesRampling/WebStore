@@ -1,0 +1,33 @@
+.split {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 1rem;
+}
+
+.right {
+  >* {
+    justify-self: right;
+  }
+
+  >div {
+    text-align: right;
+  }
+}
+
+label {
+  margin-top: 1rem;
+  display: block;
+}
+
+input {
+  display: block;
+}
+
+button {
+  margin-top: 1rem;
+  display: block;
+}
+
+[id$=-errors] {
+  color: red;
+}
