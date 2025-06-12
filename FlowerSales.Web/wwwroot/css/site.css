@@ -37,6 +37,16 @@ header {
     flex: 1;
     align-items: center;
   }
+
+  div {
+    display: flex;
+    gap: 1rem;
+    align-items: baseline;
+  }
+
+  #account-info {
+    font-weight: bold;
+  }
 }
 
 main {
@@ -82,4 +92,8 @@ button {
     background: #eee;
     box-shadow: 0 0.125rem 0.375rem 0 rgba(0, 0, 0, 0.15);
   }
+}
+
+.hidden {
+  display: none;
 }

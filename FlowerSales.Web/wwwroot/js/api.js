@@ -22,7 +22,7 @@ const toQuery = (...objects) =>
 const Api = {
     login: (email, password) => request("/api/account/login?useCookies=true", "POST", {email, password}),
     register: (email, password) => request("/api/account/register", "POST", {email, password}),
-    info: () => request("/api/account/info").then(r => r.json()),
+    info: () => request("/api/account/manage/info").then(r => r.json()),
     logout: () => request("/api/account/logout", "POST"),
 
     getProducts: (pagination, filters) => request(`/api/store/products?${toQuery(pagination, filters)}`).then(r => r.json()),

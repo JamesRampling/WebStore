@@ -1,9 +1,14 @@
 // @ts-check
 
 import Api from "../api.js";
+import { computed, ref, unreachable, watchEffect } from "../utilities.js";
 
-const list = document.querySelector("#products-list");
-const pages = await Api.getProducts({ items: 100 });
+const list = document.querySelector("#products-list") ?? unreachable();
+const page_elem = document.querySelector("#page-list") ?? unreachable();
+
+const page = ref(0);
+
+const pages = await Api.getProducts({ page: page.value, items: 5 });
 const products = pages.items;
 const pages_count = pages.total_pages;
 
@@ -18,3 +23,14 @@ products.forEach(async product => {
 
     list?.appendChild(elem)
 });
+
+const page_text = computed(() => `${page.value + 1}/${pages_count}`);
+watchEffect(() => {
+    page_elem.textContent = page_text.value
+});
+
+const prev_button = document.querySelector("#prev-page") ?? unreachable();
+prev_button.addEventListener('click', () => page.value = page.value - 1);
+
+const next_button = document.querySelector("#prev-page") ?? unreachable();
+next_button.addEventListener('click', () => page.value = page.value + 1);

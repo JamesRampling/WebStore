@@ -16,7 +16,9 @@
             <a asp-controller="Products" asp-action="Index">Products</a>
         </nav>
         <div>
-            <a asp-controller="Home" asp-action="Login">Login</a>
+            <span id="account-info"></span>
+            <a class="hidden" id="logout-anchor" href="javascript:void(0)">Logout</a>
+            <a id="login-anchor" asp-controller="Home" asp-action="Login">Login/Register</a>
         </div>
     </header>
 
