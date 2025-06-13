@@ -32,5 +32,5 @@ watchEffect(() => {
 const prev_button = document.querySelector("#prev-page") ?? unreachable();
 prev_button.addEventListener('click', () => page.value = page.value - 1);
 
-const next_button = document.querySelector("#prev-page") ?? unreachable();
+const next_button = document.querySelector("#next-page") ?? unreachable();
 next_button.addEventListener('click', () => page.value = page.value + 1);
