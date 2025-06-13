@@ -26,30 +26,11 @@ public class CategoryController : ControllerBase
 
     [HttpGet]
     [Route("categories")]
-    public async Task<PaginatedResponse<Category>> GetCategories([FromQuery] PaginationParams pagination, [FromQuery] string? name = null)
+    public IEnumerable<Category> GetCategories([FromQuery] string? name = null)
     {
-        var count = _context.Categories.CountAsync();
-        var results = _context.Categories.AsQueryable()
-            .Where(category => string.IsNullOrWhiteSpace(name) || category.Name.Contains(name))
-            .Skip(pagination.Page * pagination.Items)
-            .Take(pagination.Items);
-
-        return new()
-        {
-            TotalPages = (int)Math.Ceiling((double)await count / pagination.Items),
-            Items = results,
-        };
+        return _context.Categories.AsQueryable()
+            .Where(category => string.IsNullOrWhiteSpace(name) || category.Name.Contains(name));
     }
-
-    [HttpGet]
-    [Route("categories/{ids}")]
-    public IEnumerable<Category> GetSpecificCategories(string ids)
-    {
-        // ideally this would be done by ASP.net but we'd need a custom binder
-        var split = ids.Split(",").Select(id => ObjectId.Parse(id)).ToHashSet();
-        return _context.Categories.AsQueryable().Where(category => split.Contains(category.Id));
-    }
-
 
     [HttpGet]
     [Route("category/{id}")]

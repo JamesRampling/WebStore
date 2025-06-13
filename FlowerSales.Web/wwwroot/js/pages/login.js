@@ -1,56 +1,57 @@
-import Api from '../api.js';
-import { unreachable } from '../utilities.js';
-
-const reactive = (initial, callback) => {
-    return new Proxy(initial, {
-        get(target, prop, receiver) {
-            return Reflect.get(target, prop, receiver);
-        },
-        set(target, prop, value, receiver) {
-            const val = Reflect.set(target, prop, value, receiver);
-            callback(target);
-            return val;
-        },
-    });
-};
+import Api from '../api.js'
+import { bind, boundChildren, computed, onBind, reactive, ref } from '../utilities.js'
 
 const setupHandlers = (prefix, callback) => {
-    const email = document.querySelector(`#${prefix}-email`) ?? unreachable();
-    const password = document.querySelector(`#${prefix}-password`) ?? unreachable();
-    const button = document.querySelector(`#${prefix}-button`) ?? unreachable();
-    const errors = document.querySelector(`#${prefix}-errors`) ?? unreachable();
+    const validationState = reactive({ email: false, password: false })
+    const email = ref('')
+    const password = ref('')
+    const errors = reactive([])
 
-    button.disabled = true;
-    let validationState = reactive({
-        email: false,
-        password: false,
-    }, state => {
-        button.disabled = !Object.values(state).reduce((acc, value) => acc &&= value, true);
-    });
+    const updateEmail = elem => {
+        validationState.email = elem.checkValidity()
+        email.value = elem.value
+    }
+    const updatePassword = elem => {
+        validationState.password = elem.checkValidity()
+        password.value = elem.value
+    }
 
-    email.addEventListener('input', e => validationState.email = e.target.checkValidity());
-    password.addEventListener('input', e => validationState.password = e.target.checkValidity());
-
-    button.addEventListener('click', async e => callback(email.value, password.value, errors));
-};
+    bind(document, {
+        [`${prefix}-email`]: {
+            [onBind]: updateEmail,
+            oninput: e => updateEmail(e.target),
+        },
+        [`${prefix}-password`]: {
+            [onBind]: updatePassword,
+            oninput: e => updatePassword(e.target),
+        },
+        [`${prefix}-button`]: {
+            onclick: () => callback(email.value, password.value, errors),
+            disabled: computed(() => !Object.values(validationState).reduce((acc, value) => acc &&= value, true)),
+        },
+        [`${prefix}-errors`]: {
+            [boundChildren]: computed(() => errors.map(e => {
+                const elem = document.createElement('p')
+                elem.textContent = e
+                return elem
+            })),
+        },
+    })
+}
 
 const doLogin = async (email, password, errors) => {
-    const resp = await Api.login(email, password);
-    if (resp.ok) return location.assign('/');
-    errors.textContent = "Invalid username or password.";
-};
+    const resp = await Api.login(email, password)
+    if (resp.ok) return location.assign('/')
+    errors.splice(0, errors.length, 'Invalid username or password.')
+}
 
 const doRegister = async (email, password, errors) => {
-    const resp = await Api.register(email, password);
-    if (resp.ok) return doLogin(email, password, errors);
+    const resp = await Api.register(email, password)
+    if (resp.ok) return doLogin(email, password, errors)
 
-    const json = await resp.json();
-    errors.replaceChildren(...Object.values(json.errors).map(values => {
-        const elem = document.createElement('p');
-        elem.textContent = values[0];
-        return elem;
-    }));
-};
+    const json = await resp.json()
+    errors.splice(0, errors.length, ...Object.values(json.errors).map(e => e[0]))
+}
 
-setupHandlers('login', doLogin);
-setupHandlers('register', doRegister);
+setupHandlers('login', doLogin)
+setupHandlers('register', doRegister)

@@ -1,48 +1,47 @@
 // @ts-check
 
 export const template = (strings, ...keys) => (values) => {
-    const result = [strings[0]];
+    const result = [strings[0]]
 
     keys.forEach((key, i) => {
-        const value = typeof key === typeof Function ? key(values) : values[key];
-        result.push(value, strings[i + 1]);
-    });
+        const value = typeof key === typeof Function ? key(values) : values[key]
+        result.push(value, strings[i + 1])
+    })
 
-    return result.join("");
-};
+    return result.join('')
+}
 
 export class BaseComponent extends HTMLElement {
     /** @type {(...values: any[]) => string} */
-    static htmlTemplate = () => "";
+    static htmlTemplate = () => ''
 
-    /** @type {(...values: any[]) => string} */
-    static cssTemplate = () => "";
+    /** @type {string} */
+    static cssSource = ''
 
     /** @type {string[]} */
-    static observedAttributes = [];
+    static observedAttributes = []
 
     connectedCallback() {
-        this.render();
+        this.render()
     }
 
     attributeChangedCallback() {
-        this.render();
+        this.render()
     }
 
     render() {
-        const dom = this.shadowRoot ?? this.attachShadow({ mode: 'open' });
+        const dom = this.shadowRoot ?? this.attachShadow({ mode: 'open' })
 
-        const constructor = Object.getPrototypeOf(this).constructor;
-        const observed = constructor.observedAttributes;
-        const attrs = Object.fromEntries(observed.map(name => [name, this.getAttribute(name)]));
+        const constructor = Object.getPrototypeOf(this).constructor
+        const observed = constructor.observedAttributes
+        const attrs = Object.fromEntries(observed.map(name => [name, this.getAttribute(name)]))
 
-        const mkHtml = constructor.htmlTemplate;
-        const mkCss = constructor.cssTemplate;
+        const mkHtml = constructor.htmlTemplate
 
-        const sheet = new CSSStyleSheet();
-        sheet.replaceSync(mkCss(attrs));
+        const sheet = new CSSStyleSheet()
+        sheet.replaceSync(constructor.cssSource)
 
-        dom.adoptedStyleSheets = [sheet];
-        dom.innerHTML = mkHtml(attrs);
+        dom.adoptedStyleSheets = [sheet]
+        dom.innerHTML = mkHtml(attrs)
     }
 }

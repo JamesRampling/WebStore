@@ -1,4 +1,4 @@
-#products-list {
+#product-list:not(:has(.loading)) {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
   gap: 1rem;
@@ -16,12 +16,19 @@
   }
 }
 
-#next-page,
-#prev-page {
+#next-button,
+#prev-button {
   font-size: 60pt;
+  box-shadow: none;
+  background-color: unset;
+  padding: 0;
+
+  &:disabled {
+    pointer-events: none;
+  }
 }
 
-#page-list {
+#page-display {
   font-size: 2rem;
   line-height: 65pt;
 }

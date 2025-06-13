@@ -1,91 +1,144 @@
-const subscriptions = new WeakMap();
-let activeEffect;
+const subscriptions = new WeakMap()
+const effectStack = []
 
 const getSubscribersFor = (target, key) => {
-    if (!subscriptions.has(target)) subscriptions.set(target, new Map());
-    const props = subscriptions.get(target);
+    if (!subscriptions.has(target)) subscriptions.set(target, new Map())
+    const props = subscriptions.get(target)
 
-    if (!props.has(key)) props.set(key, new Set());
-    return props.get(key);
-};
+    if (!props.has(key)) props.set(key, new Set())
+    return props.get(key)
+}
 
 const trigger = (target, key) => {
-    const effects = getSubscribersFor(target, key);
-    effects.forEach(effect => effect());
-};
+    const effects = getSubscribersFor(target, key)
+    effects.forEach(effect => effect())
+}
 
 const track = (target, key) => {
-    if (typeof activeEffect !== 'function') return;
-    const effects = getSubscribersFor(target, key);
-    effects.add(activeEffect);
-};
+    const activeEffect = effectStack[effectStack.length - 1]
+    if (typeof activeEffect !== 'function') return
+    const effects = getSubscribersFor(target, key)
+    effects.add(activeEffect)
+}
 
 export function watch(source, effect) {
-    activeEffect = effect;
-    source();
-    activeEffect = null;
-};
+    effectStack.push(effect)
+    source()
+    effectStack.pop()
+}
 
 export function watchEffect(update) {
     const effect = () => {
-        activeEffect = effect;
-        update();
-        activeEffect = null;
-    };
-    effect();
-};
+        effectStack.push(effect)
+        update()
+        effectStack.pop()
+    }
+    effect()
+}
+
+const reactiveCellMarker = Symbol('reactive cell marker')
+const extendReactiveCell = cell => Object.assign(cell, {
+    [reactiveCellMarker]: true,
+    watch: effect => watch(() => cell.value, () => effect(cell.value)),
+    watchEffect: effect => watchEffect(() => effect(cell.value)),
+})
+
+export function isReactiveCell(obj) { return obj != null && (typeof obj === 'object') && obj[reactiveCellMarker] }
 
 export function ref(value) {
     const self = {
         get value() {
-            track(self, 'value');
-            return value;
+            track(self, 'value')
+            return value
         },
 
         set value(newValue) {
-            value = newValue;
-            trigger(self, 'value');
+            value = newValue
+            trigger(self, 'value')
         },
-    };
-    return self;
-};
 
-export function reactive(obj) {
-    return new Proxy(obj, {
-        get(target, key) {
-            track(target, key);
-            const val = target[key];
-            if (val != null && typeof val === 'object') return reactive(val);
-            else return val;
-        },
-        set(target, key, val) {
-            if (val != null && typeof val === 'object') throw Error("attempted to set object on proxy");
-            target[key] = val;
-            trigger(target, key);
-        },
-    });
-};
+        update(fn) {
+            value = fn(value)
+            trigger(self, 'value')
+        }
+    }
 
-const unsetSentinel = Symbol("unset computed property");
+    return extendReactiveCell(self)
+}
+
+const cacheSymbol = Symbol('computed property cache')
+const invalidatedSymbol = Symbol('computed property invalidation state')
+
 export function computed(fn) {
     const self = {
-        /** @type {any} */
-        _cache: unsetSentinel,
+        [invalidatedSymbol]: true,
 
         get value() {
-            track(self, 'value');
-            if (self._cache === unsetSentinel) self._cache = fn();
-            return self._cache;
+            track(self, 'value')
+            if (self[invalidatedSymbol]) {
+                const val = fn()
+                self[invalidatedSymbol] = self[cacheSymbol] !== val
+                self[cacheSymbol] = val
+            }
+            return self[cacheSymbol]
         },
-    };
+    }
 
     watch(() => self._cache = fn(), () => {
-        self._cache = unsetSentinel;
-        trigger(self, 'value');
-    });
+        self[invalidatedSymbol] = true
+        trigger(self, 'value')
+    })
 
-    return self;
-};
+    return extendReactiveCell(self)
+}
+
+const reactiveProxyHandler = {
+    get(target, key) {
+        track(target, key)
+        const val = target[key]
+        if (val != null && typeof val === 'object') return new Proxy(val, reactiveProxyHandler)
+        else return val
+    },
+    set(target, key, val) {
+        target[key] = val
+        trigger(target, key)
+        return true
+    },
+}
+
+export function reactive(obj) { return new Proxy(obj, reactiveProxyHandler) }
+
+export const boundChildren = Symbol('bound children elements')
+export const onBind = Symbol('on bind lifecycle event')
+
+export function bind(parent, elements) {
+    return Object.fromEntries(Object.entries(elements).flatMap(([name, obj]) => {
+        const node = parent.getElementById(name)
+
+        if (node == null) throw new Error(`failed to get element with id ${name}`)
+        if (typeof obj === 'string') return [[obj, node]]
+        if (typeof obj !== 'object') throw new Error(`unsure how to handle bound value for ${name}`)
+
+        Reflect.ownKeys(obj).forEach(prop => {
+            const fn = obj[prop]
+
+            if (prop === boundChildren) {
+                watchEffect(() => {
+                    const children = isReactiveCell(fn) ? fn.value : fn
+                    node.replaceChildren(...children)
+                })
+            } else if (prop === onBind) {
+                fn(node)
+            } else if (isReactiveCell(fn)) {
+                fn.watchEffect(res => node[prop] = res)
+            } else node[prop] = fn
+        })
+
+        return []
+    }))
+}
 
 /** @returns {never} */
-export function unreachable() { throw Error("unreachable"); };
+export function unreachable() { throw Error('unreachable') }
+
+export function clamp(min, val, max) { return Math.max(min, Math.min(val, max)) }

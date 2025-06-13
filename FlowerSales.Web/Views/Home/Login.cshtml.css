@@ -5,6 +5,8 @@
 }
 
 .right {
+  display: grid;
+
   >* {
     justify-self: right;
   }

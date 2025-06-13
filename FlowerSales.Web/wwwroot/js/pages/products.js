@@ -1,36 +1,73 @@
 // @ts-check
 
-import Api from "../api.js";
-import { computed, ref, unreachable, watchEffect } from "../utilities.js";
+import Api, { toQuery } from '../api.js'
+import { makeComponent } from '../components.js'
+import { bind, boundChildren, clamp, computed, reactive, ref, watchEffect } from '../utilities.js'
 
-const list = document.querySelector("#products-list") ?? unreachable();
-const page_elem = document.querySelector("#page-list") ?? unreachable();
+const makeProductView = makeComponent.bind(null, 'product-view')
+const nonNan = (value, other) => isNaN(value) ? other : value
 
-const page = ref(0);
+const query = Object.fromEntries((new URLSearchParams(location.search)).entries())
 
-const pages = await Api.getProducts({ page: page.value, items: 5 });
-const products = pages.items;
-const pages_count = pages.total_pages;
+const page_index = ref(nonNan(Number.parseInt(query.page, 10), 0))
 
-const category_ids = [...new Set(products.map(product => product.category_id))];
-const categories = Object.fromEntries((await Api.getSpecificCategories(category_ids)).map(category => [category.id, category.name]));
+const is_loading = ref(true)
+const page_max = ref()
+const product_items = reactive([])
+const product_categories = reactive([])
 
-products.forEach(async product => {
-    const elem = document.createElement('product-view');
+const safe_page_max = computed(() => (page_max.value ?? 1) - 1)
 
-    Object.entries(product).forEach(([key, value]) => elem.setAttribute(key, value));
-    elem.setAttribute('category_name', categories[product.category_id] ?? "")
+bind(document, {
+    ['next-button']: {
+        onclick: () => page_index.update(i => clamp(0, i + 1, safe_page_max.value)),
+        disabled: computed(() => is_loading.value || page_index.value >= safe_page_max.value),
+    },
+    ['prev-button']: {
+        onclick: () => page_index.update(i => clamp(0, i - 1, safe_page_max.value)),
+        disabled: computed(() => is_loading.value || page_index.value <= 0),
+    },
 
-    list?.appendChild(elem)
-});
+    ['page-display']: { textContent: computed(() => {
+        const total = page_max.value
+        return (typeof total === 'number')
+            ? `${page_index.value + 1}/${total}`
+            : '...'
+    }) },
 
-const page_text = computed(() => `${page.value + 1}/${pages_count}`);
-watchEffect(() => {
-    page_elem.textContent = page_text.value
-});
+    ['product-list']: {
+        [boundChildren]: computed(() => {
+            return is_loading.value
+                ? [makeComponent('div', { class: 'loading' }, { textContent: 'Loading...' })]
+                : product_items.map(makeProductView)
+        })
+    },
+})
 
-const prev_button = document.querySelector("#prev-page") ?? unreachable();
-prev_button.addEventListener('click', () => page.value = page.value - 1);
+const updateProducts = async () => {
+    is_loading.value = true
 
-const next_button = document.querySelector("#next-page") ?? unreachable();
-next_button.addEventListener('click', () => page.value = page.value + 1);
+    const products = await Api.getProducts({ page: page_index.value, items: 10 })
+    const categories = await Api.getCategories()
+
+    const category_map = Object.fromEntries(categories.map(({id, name}) => [id, name]))
+
+    products.items.forEach(p => p.category_name = category_map[p.category_id])
+
+    page_max.value = products.total_pages
+    product_items.splice(0, product_items.length, ...products.items)
+    product_categories.splice(0, product_categories.length, ...categories)
+
+    is_loading.value = false
+}
+
+const updateUrl = () => {
+    const params = {
+        page: page_index.value === 0 ? undefined : page_index.value,
+    }
+
+    history.replaceState(history.state, '', `?${toQuery(params)}`)
+}
+
+watchEffect(updateProducts)
+watchEffect(updateUrl)
