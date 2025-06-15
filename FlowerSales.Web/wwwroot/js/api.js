@@ -3,10 +3,11 @@
 // TODO: get this from appsettings somehow
 const apiHost = 'https://localhost:7294'
 
-const request = (endpoint, method, body) => fetch(apiHost + endpoint, {
+const request = (endpoint, method, body, version) => fetch(apiHost + endpoint, {
     headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
+        'Version': version ?? '1',
     },
     credentials: 'include',
     method,
@@ -25,15 +26,14 @@ const Api = {
     info: () => request('/api/account/manage/info').then(r => r.json()),
     logout: () => request('/api/account/logout', 'POST'),
 
-    getProducts: (pagination, filters) => request(`/api/store/products?${toQuery(pagination, filters)}`).then(r => r.json()),
-
     getCategory: (id) => request(`/api/store/category/${id}`).then(r => r.json()),
-    getCategories: (pagination, name) => request(`/api/store/categories?${toQuery({name})}`).then(r => r.json()),
+    getCategories: (name) => request(`/api/store/categories?${toQuery({name})}`).then(r => r.json()),
 
     createCategory: (name) => request('/api/store/category', 'POST', {name}).then(r => r.json()),
     updateCategory: (id, name) => request(`/api/store/category/${id}`, 'PUT', {name}),
     deleteCategory: (id) => request(`/api/store/category/${id}`, 'DELETE'),
 
+    getProducts: (pagination, filters) => request(`/api/store/products?${toQuery(pagination, filters)}`).then(r => r.json()),
     createProduct: (name, category_id, store_location, post_code, price, is_available) => request('/api/store/product', 'POST', {
         name, category_id, store_location, post_code, price, is_available,
     }).then(r => r.json()),
@@ -42,13 +42,25 @@ const Api = {
     }),
     deleteProduct: (id) => request(`/api/store/product/${id}`, 'DELETE'),
 }
+
+export const ApiV2 = Object.assign({}, Api, {
+    getProducts: (pagination, filters) => request(`/api/store/products?${toQuery(pagination, filters)}`, 'GET', undefined, '2').then(r => r.json()),
+    createProduct: (name, category_id, store_location, post_code, price, is_available) => request('/api/store/product', 'POST', {
+        name, category_id, store_location, post_code, price, is_available,
+    }, '2').then(r => r.json()),
+    updateProduct: (id, name, category_id, store_location, post_code, price, is_available) => request(`/api/store/product/${id}`, 'PUT', {
+        name, category_id, store_location, post_code, price, is_available,
+    }, '2'),
+    deleteProduct: (id) => request(`/api/store/product/${id}`, 'DELETE', undefined, '2'),
+})
+
 export default Api
 
 export const deleteAll = async () => {
     const products = await Api.getProducts({ items: 100 })
     products.forEach(product => Api.deleteProduct(product.id))
 
-    const categories = await Api.getCategories({ items: 100 })
+    const categories = await Api.getCategories()
     categories.forEach(category => Api.deleteCategory(category.id))
 }
 
@@ -65,7 +77,7 @@ export const seedData = () => {
         ['Gerberas', 'Willeton', '6155', 35, true],
         ['Aziatic Lilies', 'Palmyra', '6123', 33, true],
         ['European Lilies', 'Melville', '6145', 125, true],
-        ['Chrisantemum', 'Canninghton', '6112', 60, true],
+        ['Chrisantemum', 'Cannington', '6112', 60, true],
         ['Alstroemeria', 'Waikiki', '6112', 95, true],
         ['Snapdragon small', 'Tuart Hill', '6112', 65, true],
         ['V-Crocus', 'Willeton', '6113', 65, true],
@@ -75,7 +87,7 @@ export const seedData = () => {
     addCategory('Box Flowers', [
         ['Calla Lily', 'Aubin Grove', '6115', 99, true],
         ['Geranium small', 'Darch', '6116', 0, false],
-        ['Geranium Large', 'Joonedaloop', '6112', 125, true],
+        ['Geranium Large', 'Joondalup', '6112', 125, true],
         ['Alstroemeria', 'Piara Waters', '6121', 22, false],
         ['Gerberas', 'Byford', '6132', 95, true],
         ['Marigold', 'Dianella', '6342', 17, true],
