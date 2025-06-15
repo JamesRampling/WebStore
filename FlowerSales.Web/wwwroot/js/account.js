@@ -1,6 +1,7 @@
 // @ts-check
 
 import Api from './api.js'
+import { bind } from './utilities.js'
 
 const AccountDetails = {
     cached: null,
@@ -19,18 +20,14 @@ const AccountDetails = {
 }
 
 AccountDetails.userEmail().then(email => {
-    let accInfo = document.getElementById('account-info')
-    let loginButton = document.getElementById('login-anchor')
-    let logoutButton = document.getElementById('logout-anchor')
-    if (accInfo == null || loginButton == null || logoutButton == null) return
-
-    accInfo.textContent = email
-    loginButton.classList.add('hidden')
-    logoutButton.classList.remove('hidden')
-
-    logoutButton.onclick = (e) => {
-        Api.logout().then(() => location.reload())
-    }
-})
+    bind(document, {
+        ['account-info']: { textContent: email },
+        ['login-anchor']: { className: 'hidden' },
+        ['logout-anchor']: {
+            className: '',
+            onclick: () => Api.logout().then(() => location.reload()),
+        },
+    })
+}).catch(e => { /* this is expected to throw when logged out */ })
 
 export default AccountDetails
