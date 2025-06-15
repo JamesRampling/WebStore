@@ -53,8 +53,9 @@ main {
   flex: 1;
   padding: 1rem;
 
-  margin-left: 25%;
-  margin-right: 25%;
+  margin-inline: auto;
+  max-width: clamp(min(100vw, 30rem), 50vw, 80rem);
+  width: 100%;
 
   >h1:first-child {
     margin-block-start: 0;
