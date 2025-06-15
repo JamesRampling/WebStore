@@ -4,9 +4,24 @@
   gap: 1rem;
 }
 
-.right {
+.grid {
   display: grid;
+  >h1 {
+    margin-bottom: 0.4rem;
+  }
+}
 
+.left {
+  >* {
+    justify-self: left;
+  }
+
+  >div {
+    text-align: left;
+  }
+}
+
+.right {
   >* {
     justify-self: right;
   }
