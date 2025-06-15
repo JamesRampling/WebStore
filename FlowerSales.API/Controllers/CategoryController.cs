@@ -1,11 +1,10 @@
-using System.Collections.Frozen;
+using Asp.Versioning;
 
 using FlowerSales.API.Models;
 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 using MongoDB.Bson;
 
@@ -14,6 +13,7 @@ namespace FlowerSales.API.Controllers;
 [EnableCors]
 [ApiController]
 [Route("/api/store")]
+[ApiVersionNeutral]
 public class CategoryController : ControllerBase
 {
     private readonly StoreContext _context;

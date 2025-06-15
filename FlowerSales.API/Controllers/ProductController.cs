@@ -1,3 +1,5 @@
+using Asp.Versioning;
+
 using FlowerSales.API.Models;
 
 using Microsoft.AspNetCore.Authorization;
@@ -12,9 +14,11 @@ namespace FlowerSales.API.Controllers;
 [EnableCors]
 [ApiController]
 [Route("/api/store")]
+[ApiVersion("1")]
 public class ProductController : ControllerBase
 {
-    private readonly StoreContext _context;
+    protected readonly StoreContext _context;
+    protected virtual IQueryable<Product> ProductView { get => _context.Products; }
 
     public ProductController(StoreContext context)
     {
@@ -24,18 +28,19 @@ public class ProductController : ControllerBase
 
     [HttpGet]
     [Route("products")]
-    public async Task<PaginatedResponse<Product>> GetProducts([FromQuery] PaginationParams pagination, [FromQuery] ProductQueryParams query)
+    public PaginatedResponse<Product> GetProducts([FromQuery] PaginationParams pagination, [FromQuery] ProductQueryParams query)
     {
-        var count = _context.Products.CountAsync();
-        var results = _context.Products.AsQueryable()
-            .Where(query.Predicate())
+        var filtered = ProductView.Where(query.Predicate());
+        var count = filtered.Count();
+
+        var paginated = filtered
             .Skip(pagination.Page * pagination.Items)
             .Take(pagination.Items);
 
         return new()
         {
-            TotalPages = (int)Math.Ceiling((double)await count / pagination.Items),
-            Items = results,
+            TotalPages = (int)Math.Ceiling((double)count / pagination.Items),
+            Items = paginated,
         };
     }
 
@@ -43,7 +48,7 @@ public class ProductController : ControllerBase
     [Route("product/{id}")]
     public async Task<ActionResult<Product>> GetProduct(ObjectId id)
     {
-        var prod = await _context.Products.FindAsync(id);
+        var prod = await ProductView.FirstOrDefaultAsync(prod => prod.Id == id);
         return prod is not null ? Ok(prod) : NotFound();
     }
 
@@ -75,7 +80,7 @@ public class ProductController : ControllerBase
     [Route("product/{id}")]
     public async Task<ActionResult<Product>> UpdateProduct(ObjectId id, [FromBody] ProductRequest req)
     {
-        var prod = await _context.Products.FindAsync(id);
+        var prod = await ProductView.FirstOrDefaultAsync(prod => prod.Id == id);
         if (prod is null) return NotFound();
 
         prod.CategoryId = req.CategoryId;
@@ -94,7 +99,7 @@ public class ProductController : ControllerBase
     [Route("product/{id}")]
     public async Task<ActionResult> DeleteProduct(ObjectId id)
     {
-        var prod = await _context.Products.FindAsync(id);
+        var prod = await ProductView.FirstOrDefaultAsync(prod => prod.Id == id);
         if (prod is null) return NotFound();
 
         _context.Products.Remove(prod);

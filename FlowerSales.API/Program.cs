@@ -1,5 +1,7 @@
 using System.Text.Json;
 
+using Asp.Versioning;
+
 using AspNetCore.Identity.Mongo;
 
 using FlowerSales.API.Models;
@@ -9,6 +11,15 @@ using Microsoft.OpenApi.Models;
 using MongoDB.Bson;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddApiVersioning(o =>
+    {
+        o.DefaultApiVersion = new ApiVersion(1);
+        o.AssumeDefaultVersionWhenUnspecified = true;
+        o.ApiVersionReader = new HeaderApiVersionReader("Version");
+    })
+    .AddMvc()
+    .AddApiExplorer(o => o.GroupNameFormat = "'v'VVV");
 
 builder.Services
     .AddControllers()
@@ -21,7 +32,19 @@ builder.Services
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new OpenApiInfo { Title = "FlowerSales", Version = "v1" });
+    c.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "FlowerSales",
+        Version = "v1",
+        Description = "The regular flower sales API with all products.",
+    });
+    c.SwaggerDoc("v2", new OpenApiInfo
+    {
+        Title = "FlowerSales",
+        Version = "v2",
+        Description = "A variant of the flower sales API which only handles available products.",
+    });
+
     c.MapType<ObjectId>(() => new OpenApiSchema
     {
         Title = "ObjectId",
@@ -52,7 +75,11 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(o =>
+    {
+        o.SwaggerEndpoint($"/swagger/v1/swagger.json", "FlowerSales.API V1");
+        o.SwaggerEndpoint($"/swagger/v2/swagger.json", "FlowerSales.API V2");
+    });
 }
 else
 {
