@@ -105,5 +105,6 @@ button {
 
 .loading {
   text-align: center;
+  align-content: center;
   font-size: 3rem;
 }

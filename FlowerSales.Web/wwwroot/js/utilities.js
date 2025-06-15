@@ -109,7 +109,8 @@ const reactiveProxyHandler = {
 export function reactive(obj) { return new Proxy(obj, reactiveProxyHandler) }
 
 export const boundChildren = Symbol('bound children elements')
-export const onBind = Symbol('on bind lifecycle event')
+export const afterBind = Symbol('after bind lifecycle event')
+export const afterBindChildren = Symbol('after bind children lifecycle event')
 
 export function bind(parent, elements) {
     return Object.fromEntries(Object.entries(elements).flatMap(([name, obj]) => {
@@ -126,8 +127,9 @@ export function bind(parent, elements) {
                 watchEffect(() => {
                     const children = isReactiveCell(fn) ? fn.value : fn
                     node.replaceChildren(...children)
+                    node[afterBindChildren]?.(node)
                 })
-            } else if (prop === onBind) {
+            } else if (prop === afterBind) {
                 fn(node)
             } else if (isReactiveCell(fn)) {
                 fn.watchEffect(res => node[prop] = res)

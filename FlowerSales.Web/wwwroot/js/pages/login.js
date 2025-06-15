@@ -1,5 +1,5 @@
 import Api from '../api.js'
-import { bind, boundChildren, computed, onBind, reactive, ref } from '../utilities.js'
+import { bind, boundChildren, computed, afterBind, reactive, ref } from '../utilities.js'
 
 const setupHandlers = (prefix, callback) => {
     const validationState = reactive({ email: false, password: false })
@@ -18,11 +18,11 @@ const setupHandlers = (prefix, callback) => {
 
     bind(document, {
         [`${prefix}-email`]: {
-            [onBind]: updateEmail,
+            [afterBind]: updateEmail,
             oninput: e => updateEmail(e.target),
         },
         [`${prefix}-password`]: {
-            [onBind]: updatePassword,
+            [afterBind]: updatePassword,
             oninput: e => updatePassword(e.target),
         },
         [`${prefix}-button`]: {
